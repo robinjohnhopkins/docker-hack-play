@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact name="mywarartifact">
+    <output-path>$PROJECT_DIR$/docker-dir</output-path>
+    <root id="root">
+      <element id="file-copy" path="$PROJECT_DIR$/target/webby.war" />
+      <element id="dir-copy" path="$PROJECT_DIR$/docker-dir" />
+    </root>
+  </artifact>
+</component>

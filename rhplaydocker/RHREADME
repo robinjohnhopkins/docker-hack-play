@@ -1,0 +1,23 @@
+https://docs.docker.com/get-started/part3/#run-your-new-load-balanced-app
+
+
+docker stack deploy -c docker-compose.yml getstartedlab
+
+
+docker service ls
+
+docker service ps getstartedlab_web
+
+http://localhost/
+
+Hello World!
+Hostname: 1b38496ddc49
+Visits: 26
+
+
+tear down the stack with docker stack rm. For example:
+
+docker stack rm getstartedlab
+
+
+

@@ -1,0 +1,104 @@
+## docker compose with elk. elastic logstash and kibana
+
+### docker-compose.yml file
+version: '3.2'
+
+services:
+  es:
+    labels:
+      com.example.service: "es"
+      com.example.description: "For searching and indexing data"
+    image: elasticsearch:5.4
+    container_name: bookme_es
+    volumes:
+      - type: volume
+        source: esdata
+        target: /usr/share/elasticsearch/data/
+    ports:
+      - "9200:9200"
+  kibana:
+    labels:
+      com.example.service: "kibana"
+      com.example.description: "Data visualisation and for log aggregation"
+    image: kibana:5.4.3
+    container_name: bookme_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_URL=http://es:9200
+    depends_on:
+      - es
+  logstash:
+    labels:
+      com.example.service: "logstash"
+      com.example.description: "For logging data"
+    image: logstash:5.4.3
+    volumes:
+      - ./:/logstash_dir
+    command: logstash -f /logstash_dir/logstash.conf
+    depends_on:
+    - es
+    ports:
+      - "5959:5959"
+
+volumes:
+  esdata:
+
+
+###logstash.conf
+input {
+    tcp {
+    port => 5959
+    codec => json
+  }
+}
+output {
+  elasticsearch {
+    hosts => ["http://es:9200"]
+  }
+}
+
+
+
+
+### use net cat to write some data to the logstash port
+
+nc localhost 5959
+{"data":"a one line","name":"jane"}         
+{"data":"a one line","name":"time"}  
+{"data":"a one line","name":"tim"}
+{"data":"what","name":"fred"}
+
+
+###docker service ls
+ID                  NAME                     MODE                REPLICAS            IMAGE               PORTS
+zn3jxnef2fyw        getstartedlab_es         replicated          1/1                 elasticsearch:5.4   *:9200->9200/tcp
+cllientmvnl1        getstartedlab_kibana     replicated          1/1                 kibana:5.4.3        *:5601->5601/tcp
+893fxldiy28r        getstartedlab_logstash   replicated          1/1                 logstash:5.4.3      *:5959->5959/tcp
+
+
+###docker stack ls
+NAME                SERVICES            ORCHESTRATOR
+getstartedlab       3                   Swarm
+
+
+### run using named stack
+docker stack deploy -c docker-compose.yml getstartedlab
+docker stack rm getstartedlab		#remove stack
+
+###
+#alternately build like so
+docker-compose build
+
+#run
+docker-compose up
+
+#OR run detached
+docker-compose up -d
+
+## kibana
+kibana is running on 
+```
+http://localhost:5601
+```
+
