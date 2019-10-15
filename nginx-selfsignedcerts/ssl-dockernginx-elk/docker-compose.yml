@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    volumes:
+      - ./nginx/config:/etc/nginx/conf.d:ro,Z
+      - ./nginx/htpasswd.users:/etc/nginx/htpasswd.users:ro,Z
+      - ./nginx/my-site.com.crt:/etc/nginx/my-site.com.crt # New Line!
+      - ./nginx/my-site.com.key:/etc/nginx/my-site.com.key # New Line!
+    ports:
+      - "5601:5601"
+    depends_on:
+      - kibana
+
+  elasticsearch:
+    image: elasticsearch:5.4
+    command: elasticsearch -Enetwork.host=0.0.0.0
+    restart: unless-stopped
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data:Z
+
+  logstash:
+    build: logstash/
+    command: logstash -f /etc/logstash/conf.d/logstash.conf
+    restart: unless-stopped
+    volumes:
+      - ./logstash/config:/etc/logstash/conf.d:ro,Z
+    ports:
+      - "5000:5000"
+      - "42185:42185/udp"
+      - "42185:42185/tcp"
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    build: kibana/
+    restart: unless-stopped
+    volumes:
+      - ./kibana/config/:/opt/kibana/config/:ro,Z
+    depends_on:
+      - elasticsearch
